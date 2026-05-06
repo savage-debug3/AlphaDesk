@@ -6,6 +6,10 @@ import {
   normalizeTokenOverview,
   normalizePriceHistory,
   normalizeTokenSecurity,
+  normalizeWalletPnl,
+  normalizeTokenCreation,
+  normalizeTokenHolder,
+  normalizeTraderGainersLosers,
 } from '../domain/normalizers.js';
 import { computeAlphaScore } from '../domain/scoring.js';
 import { computeConvictionSignals, deriveFeedFromTraders } from '../domain/signals.js';
@@ -169,6 +173,56 @@ export async function runLivePipeline(client, onStep) {
   }
 
   step(7);
+  for (const w of uniqueWallets) {
+    try {
+      const resp = await client.apiFetch(`/wallet/v2/pnl-summary?wallet=${w.address}`);
+      meta.endpointsUsed++;
+      const pnl = normalizeWalletPnl(resp);
+      w.walletPnl = pnl;
+    } catch {
+      w.walletPnl = null;
+    }
+    await delay(200);
+  }
+
+  step(8);
+  const tokenMeta = {};
+  const candidateTokens = [];
+  const tokenHolderCount = {};
+
+  const tokenWalletCounts = {};
+  uniqueWallets.forEach(w => {
+    (w.positions || []).forEach(pos => {
+      if (!tokenWalletCounts[pos.tokenAddress]) tokenWalletCounts[pos.tokenAddress] = 0;
+      tokenWalletCounts[pos.tokenAddress]++;
+    });
+  });
+  Object.entries(tokenWalletCounts)
+    .filter(([, count]) => count >= 2)
+    .forEach(([addr]) => candidateTokens.push(addr));
+
+  for (const addr of candidateTokens.slice(0, 15)) {
+    try {
+      const [creationResp, holderResp] = await Promise.all([
+        client.apiFetch(`/defi/token_creation_info?address=${addr}`),
+        client.apiFetch(`/defi/v3/token/holder?address=${addr}&offset=0&limit=1`),
+      ]);
+      meta.endpointsUsed += 2;
+      tokenMeta[addr] = normalizeTokenCreation(creationResp);
+      tokenHolderCount[addr] = normalizeTokenHolder(holderResp).totalHolders;
+    } catch { /* skip */ }
+    await delay(150);
+  }
+
+  step(9);
+  let topGainers = [];
+  try {
+    const resp = await client.apiFetch('/trader/gainers-losers?time_frame=24h&sort_by=PnL&sort_type=desc&offset=0&limit=10');
+    meta.endpointsUsed++;
+    topGainers = normalizeTraderGainersLosers(resp);
+  } catch { /* skip */ }
+
+  step(10);
   const scoredWallets = uniqueWallets.map(w => {
     const result = computeAlphaScore(w);
     return {
@@ -180,9 +234,9 @@ export async function runLivePipeline(client, onStep) {
     };
   }).sort((a, b) => b.alphaScore - a.alphaScore);
 
-  const signals = computeConvictionSignals(scoredWallets, priceCache);
-  const feed = deriveFeedFromTraders(allTraders, scoredWallets);
+  const signals = computeConvictionSignals(scoredWallets, priceCache, tokenMeta, tokenHolderCount);
+  const feed = deriveFeedFromTraders(allTraders, scoredWallets, topGainers);
 
-  step(8);
+  step(11);
   return { wallets: scoredWallets, signals, feed, meta };
 }

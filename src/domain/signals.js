@@ -1,4 +1,4 @@
-export function computeConvictionSignals(wallets, priceCache) {
+export function computeConvictionSignals(wallets, priceCache, tokenMeta, tokenHolderCount) {
   const tokenHolders = {};
 
   wallets.forEach(w => {
@@ -18,6 +18,8 @@ export function computeConvictionSignals(wallets, priceCache) {
     .map(([symbol, v]) => {
       const count = v.holders.length;
       const cached = (priceCache || {})[v.pos.tokenAddress] || {};
+      const creation = (tokenMeta || {})[v.pos.tokenAddress];
+      const holders = (tokenHolderCount || {})[v.pos.tokenAddress];
       return {
         token: { symbol, name: v.pos.name, address: v.pos.tokenAddress },
         conviction: count >= 7 ? 'EXTREME' : count >= 5 ? 'HIGH' : 'MODERATE',
@@ -27,12 +29,15 @@ export function computeConvictionSignals(wallets, priceCache) {
         priceChange24h: cached.priceChange24h || v.pos.priceChange24h || 0,
         sparkline: cached.sparkline || v.pos.sparkline || [],
         marketCap: cached.marketCap || 0,
+        tokenAge: creation?.createdTime ? Math.max(0, Date.now() / 1000 - creation.createdTime) : null,
+        creator: creation?.creator || null,
+        totalHolders: holders || null,
       };
     })
     .sort((a, b) => b.walletCount - a.walletCount);
 }
 
-export function deriveFeedFromTraders(allTraders, wallets) {
+export function deriveFeedFromTraders(allTraders, wallets, topGainers) {
   const walletScoreMap = {};
   wallets.forEach(w => { walletScoreMap[w.address] = w.alphaScore || 0; });
 
@@ -48,6 +53,24 @@ export function deriveFeedFromTraders(allTraders, wallets) {
     quality: 'derived',
     walletScore: walletScoreMap[entry.wallet] || null,
   }));
+
+  if (topGainers && topGainers.length > 0) {
+    topGainers.forEach((g, i) => {
+      entries.push({
+        id: `gainer-${i}`,
+        type: 'top_gainer',
+        wallet: g.wallet,
+        token: null,
+        volume24h: g.volume || 0,
+        tradeCount: g.tradeCount || 0,
+        pnl: g.pnl || 0,
+        timestamp: Date.now() - i * 60000,
+        source: 'Birdeye Top Gainers',
+        quality: 'derived',
+        walletScore: walletScoreMap[g.wallet] || null,
+      });
+    });
+  }
 
   return entries
     .sort((a, b) => (b.volume24h || 0) - (a.volume24h || 0))

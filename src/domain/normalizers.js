@@ -56,6 +56,44 @@ export function normalizePriceHistory(resp) {
   return items.map(h => h.value ?? h.close ?? h.price ?? 0).filter(v => v > 0);
 }
 
+export function normalizeWalletPnl(resp) {
+  const d = resp?.data || {};
+  return {
+    totalPnl: d.total ?? d.totalPnl ?? 0,
+    realizedPnl: d.realized ?? d.realizedPnl ?? 0,
+    unrealizedPnl: d.unrealized ?? d.unrealizedPnl ?? 0,
+    totalInvested: d.totalInvested ?? d.total_invested ?? 0,
+    pnlPercent: d.pnlPercent ?? (d.totalInvested ? ((d.total ?? 0) / d.totalInvested) * 100 : 0),
+  };
+}
+
+export function normalizeTokenCreation(resp) {
+  const d = resp?.data || {};
+  return {
+    txHash: d.txHash ?? d.tx_hash ?? '',
+    creator: d.creator ?? d.owner ?? '',
+    createdTime: d.blockUnixTime ?? d.slot_time ?? d.createdTime ?? 0,
+    slot: d.slot ?? 0,
+  };
+}
+
+export function normalizeTokenHolder(resp) {
+  const d = resp?.data || {};
+  return {
+    totalHolders: d.total ?? d.totalHolders ?? 0,
+  };
+}
+
+export function normalizeTraderGainersLosers(resp) {
+  const items = resp?.data?.items || resp?.data || [];
+  return items.map(t => ({
+    wallet: t.address ?? t.owner ?? '',
+    pnl: t.pnl ?? t.totalPnl ?? 0,
+    volume: t.volume ?? t.volumeUsd ?? 0,
+    tradeCount: t.trade ?? t.tradeCount ?? 0,
+  })).filter(t => t.wallet);
+}
+
 /* Birdeye token_security fields vary; normalize to a consistent risk assessment */
 export function normalizeTokenSecurity(resp) {
   const sec = resp?.data || {};

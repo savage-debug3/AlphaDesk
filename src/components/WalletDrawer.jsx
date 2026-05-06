@@ -86,6 +86,14 @@ export default function WalletDrawer({ wallet, onClose, feed, copiedAddress, set
               </div>
             </div>
           )}
+          {wallet.walletPnl && (
+            <div className="drawer-stat">
+              <div className="drawer-stat-label">Wallet PnL</div>
+              <div className={`drawer-stat-value mono ${wallet.walletPnl.totalPnl >= 0 ? 'positive' : 'negative'}`}>
+                {wallet.walletPnl.totalPnl >= 0 ? '+' : ''}{formatUsd(wallet.walletPnl.totalPnl)}
+              </div>
+            </div>
+          )}
           {wallet.totalTrades > 0 && (
             <div className="drawer-stat">
               <div className="drawer-stat-label">24h Trades</div>

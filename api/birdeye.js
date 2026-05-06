@@ -5,6 +5,10 @@ const ALLOWED_PATHS = [
   { path: '/defi/token_overview', cache: 60 },
   { path: '/defi/history_price', cache: 120 },
   { path: '/defi/token_security', cache: 300 },
+  { path: '/wallet/v2/pnl-summary', cache: 60 },
+  { path: '/defi/token_creation_info', cache: 300 },
+  { path: '/defi/v3/token/holder', cache: 120 },
+  { path: '/trader/gainers-losers', cache: 60 },
 ];
 
 const SAFE_PARAM_RE = /^[a-zA-Z0-9_\-.]+$/;

@@ -1,6 +1,13 @@
 import { formatUsd, formatNumber, shortAddr, getConvictionColor, getConvictionDim, getTierColor, getTierDimColor } from '../utils/formatters.js';
 import Sparkline from './Sparkline.jsx';
 
+function formatTokenAge(seconds) {
+  if (seconds < 3600) return Math.floor(seconds / 60) + 'm old';
+  if (seconds < 86400) return Math.floor(seconds / 3600) + 'h old';
+  if (seconds < 2592000) return Math.floor(seconds / 86400) + 'd old';
+  return Math.floor(seconds / 2592000) + 'mo old';
+}
+
 export default function SignalsDetailTab({ signals, wallets, onSelectWallet }) {
   if (!signals || signals.length === 0) {
     return (
@@ -36,6 +43,12 @@ export default function SignalsDetailTab({ signals, wallets, onSelectWallet }) {
               </span>
               {sig.marketCap > 0 && (
                 <span className="signal-detail-mcap">MCap: {formatNumber(sig.marketCap)}</span>
+              )}
+              {sig.totalHolders != null && (
+                <span className="signal-detail-holders">{sig.totalHolders.toLocaleString()} holders</span>
+              )}
+              {sig.tokenAge != null && (
+                <span className="signal-detail-age">{formatTokenAge(sig.tokenAge)}</span>
               )}
             </div>
           </div>

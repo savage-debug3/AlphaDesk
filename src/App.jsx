@@ -54,6 +54,9 @@ const STEPS = [
   'Enriching wallet profiles\u2026',
   'Fetching price data\u2026',
   'Running security checks\u2026',
+  'Fetching wallet PnL\u2026',
+  'Analyzing token metadata\u2026',
+  'Loading top earners\u2026',
   'Computing AlphaScores\u2026',
   'Done!',
 ];

@@ -22,13 +22,29 @@ export default function FeedTab({ feed }) {
       </div>
       {feed.map((entry) => (
         <div key={entry.id} className="feed-item">
-          <span className="feed-dot top-trader" />
-          <span className="feed-addr">{shortAddr(entry.wallet)}</span>
-          <span className="feed-token">{entry.token?.symbol || 'UNK'}</span>
-          <span className="feed-value">{entry.volume24h ? formatUsd(entry.volume24h) : '\u2014'}</span>
-          <span className="feed-trades">{entry.tradeCount ? formatNumber(entry.tradeCount) : '\u2014'}</span>
-          <span className="feed-source">{entry.source || 'Unknown'}</span>
-          <span className="feed-time">{entry.timestamp ? timeAgo(entry.timestamp) : ''}</span>
+          {entry.type === 'top_gainer' ? (
+            <>
+              <span className="feed-dot gainer" />
+              <span className="feed-addr">{shortAddr(entry.wallet)}</span>
+              <span className="feed-token">Top earner</span>
+              <span className={`feed-value ${entry.pnl >= 0 ? 'positive' : 'negative'}`}>
+                {entry.pnl >= 0 ? '+' : ''}{formatUsd(entry.pnl)}
+              </span>
+              <span className="feed-trades">{entry.tradeCount ? formatNumber(entry.tradeCount) : '\u2014'}</span>
+              <span className="feed-source">{entry.source || 'Unknown'}</span>
+              <span className="feed-time">{entry.timestamp ? timeAgo(entry.timestamp) : ''}</span>
+            </>
+          ) : (
+            <>
+              <span className="feed-dot top-trader" />
+              <span className="feed-addr">{shortAddr(entry.wallet)}</span>
+              <span className="feed-token">{entry.token?.symbol || 'UNK'}</span>
+              <span className="feed-value">{entry.volume24h ? formatUsd(entry.volume24h) : '\u2014'}</span>
+              <span className="feed-trades">{entry.tradeCount ? formatNumber(entry.tradeCount) : '\u2014'}</span>
+              <span className="feed-source">{entry.source || 'Unknown'}</span>
+              <span className="feed-time">{entry.timestamp ? timeAgo(entry.timestamp) : ''}</span>
+            </>
+          )}
         </div>
       ))}
       <div className="feed-disclaimer">

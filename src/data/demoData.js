@@ -95,11 +95,12 @@ export const DEMO_WALLETS = WALLET_ADDRS.map((addr, i) => {
   const positions = buildDemoPositions(i, rng);
   const score = SCORES[i];
   const scoreBreakdown = {
-    coverage: { score: Math.round((positions.length / 10) * 35), max: 35, detail: `${positions.length} trending tokens` },
-    recency: { score: i < 4 ? 25 : i < 7 ? 15 : 5, max: 25, detail: i < 4 ? 'Active <6h' : i < 7 ? 'Active <24h' : 'Active <72h' },
-    diversity: { score: positions.length >= 3 && positions.length <= 15 ? 20 : 10, max: 20, detail: `${positions.length} positions` },
+    coverage: { score: Math.round((positions.length / 10) * 30), max: 30, detail: `${positions.length} trending tokens` },
+    recency: { score: i < 4 ? 20 : i < 7 ? 12 : 4, max: 20, detail: i < 4 ? 'Active <6h' : i < 7 ? 'Active <24h' : 'Active <72h' },
+    diversity: { score: positions.length >= 3 && positions.length <= 15 ? 15 : 8, max: 15, detail: `${positions.length} positions` },
     quality: { score: 10, max: 10, detail: 'No high-risk tokens' },
     elite: { score: i < 5 ? 10 : i < 7 ? 5 : 0, max: 10, detail: i < 5 ? 'Appears in 5+ trending tokens' : 'Standard' },
+    profitability: { score: i < 3 ? 15 : i < 6 ? 12 : i < 8 ? 8 : 3, max: 15, detail: 'Demo PnL' },
   };
   return {
     address: addr,
@@ -107,6 +108,13 @@ export const DEMO_WALLETS = WALLET_ADDRS.map((addr, i) => {
     scoreBreakdown,
     portfolio: PORTFOLIOS[i],
     positions,
+    walletPnl: {
+      totalPnl: (rng() - 0.3) * 50000,
+      realizedPnl: (rng() - 0.3) * 30000,
+      unrealizedPnl: (rng() - 0.3) * 20000,
+      totalInvested: rng() * 100000 + 10000,
+      pnlPercent: (rng() - 0.3) * 200,
+    },
     tier: getTier(score),
     lastActive: DEMO_NOW - (i * 1800000 + 300000),
     appearsInTokens: positions.map(p => p.symbol),
@@ -128,6 +136,8 @@ export const DEMO_SIGNALS = [
     priceChange24h: 15.7,
     sparkline: makeSparkline(1.8, 2.34, 24, rng),
     marketCap: 2340000000,
+    totalHolders: Math.floor(rng() * 10000) + 100,
+    tokenAge: Math.floor(rng() * 2592000),
   },
   {
     token: { symbol: 'BONK', name: 'Bonk', address: bonk.address },
@@ -138,6 +148,8 @@ export const DEMO_SIGNALS = [
     priceChange24h: 8.3,
     sparkline: makeSparkline(0.000024, 0.00002847, 24, rng),
     marketCap: 1870000000,
+    totalHolders: Math.floor(rng() * 10000) + 100,
+    tokenAge: Math.floor(rng() * 2592000),
   },
   {
     token: { symbol: 'JUP', name: 'Jupiter', address: jup.address },
@@ -148,6 +160,8 @@ export const DEMO_SIGNALS = [
     priceChange24h: -3.2,
     sparkline: makeSparkline(1.18, 1.12, 24, rng),
     marketCap: 1520000000,
+    totalHolders: Math.floor(rng() * 10000) + 100,
+    tokenAge: Math.floor(rng() * 2592000),
   },
 ];
 
