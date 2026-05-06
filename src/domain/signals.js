@@ -72,7 +72,11 @@ export function deriveFeedFromTraders(allTraders, wallets, topGainers) {
     });
   }
 
-  return entries
-    .sort((a, b) => (b.volume24h || 0) - (a.volume24h || 0))
-    .slice(0, 40);
+  const traderEntries = entries.filter(e => e.type !== 'top_gainer');
+  const gainerEntries = entries.filter(e => e.type === 'top_gainer');
+
+  return [
+    ...traderEntries.sort((a, b) => (b.volume24h || 0) - (a.volume24h || 0)).slice(0, 30),
+    ...gainerEntries.sort((a, b) => (b.pnl || 0) - (a.pnl || 0)).slice(0, 10),
+  ];
 }
