@@ -23,7 +23,7 @@ function getSortValue(w, key) {
   return 0;
 }
 
-export default function LeaderboardTab({ wallets, onSelectWallet, copiedAddress, setCopiedAddress }) {
+export default function LeaderboardTab({ wallets, onSelectWallet, copiedAddress, setCopiedAddress, watchlist, onToggleWatchlist }) {
   const [animateScores, setAnimateScores] = useState(false);
   const [sortKey, setSortKey] = useState('alphaScore');
   const [sortDir, setSortDir] = useState('desc');
@@ -119,6 +119,7 @@ export default function LeaderboardTab({ wallets, onSelectWallet, copiedAddress,
         </button>
       </div>
       <div className="leaderboard-header">
+        <span className="lb-col lb-star"></span>
         {getSortColumns(wallets).map(col => (
           <span key={col.key} className={`lb-col ${col.className}`}>
             <button
@@ -145,6 +146,15 @@ export default function LeaderboardTab({ wallets, onSelectWallet, copiedAddress,
               onClick={() => onSelectWallet(w)}
               style={{ '--tier-color': tierColor }}
             >
+              <span className="lb-col lb-star">
+                <button
+                  className={`star-btn ${watchlist.includes(w.address) ? 'starred' : ''}`}
+                  onClick={(e) => { e.stopPropagation(); onToggleWatchlist(w.address); }}
+                  title={watchlist.includes(w.address) ? 'Remove from watchlist' : 'Add to watchlist'}
+                >
+                  {watchlist.includes(w.address) ? '★' : '☆'}
+                </button>
+              </span>
               <span className="lb-col lb-rank">#{i + 1}</span>
               <span className="lb-col lb-wallet">
                 <button className="wallet-addr-btn" onClick={(e) => copyAddr(e, w.address)} title="Click to copy">

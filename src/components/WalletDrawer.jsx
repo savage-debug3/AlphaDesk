@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { shortAddr, formatUsd, formatNumber, timeAgo, getTier, getTierColor, getTierDimColor } from '../utils/formatters.js';
 import Sparkline from './Sparkline.jsx';
 
-export default function WalletDrawer({ wallet, onClose, feed, copiedAddress, setCopiedAddress }) {
+export default function WalletDrawer({ wallet, onClose, feed, copiedAddress, setCopiedAddress, watchlist, onToggleWatchlist }) {
   const overlayRef = useRef(null);
 
   useEffect(() => {
@@ -35,6 +35,13 @@ export default function WalletDrawer({ wallet, onClose, feed, copiedAddress, set
           <div className="drawer-title-row">
             <span className="drawer-addr">{shortAddr(wallet.address)}</span>
             <span className="tier-badge" style={{ background: tierDim, color: tierColor }}>{tier}</span>
+            <button
+              className={`star-btn drawer-star ${watchlist?.includes(wallet.address) ? 'starred' : ''}`}
+              onClick={() => onToggleWatchlist(wallet.address)}
+              title={watchlist?.includes(wallet.address) ? 'Remove from watchlist' : 'Add to watchlist'}
+            >
+              {watchlist?.includes(wallet.address) ? '★' : '☆'}
+            </button>
             <button className="drawer-close" onClick={onClose}>{'\u2715'}</button>
           </div>
           <div className="drawer-full-addr" onClick={copyFullAddr} title="Click to copy">
