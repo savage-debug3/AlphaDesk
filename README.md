@@ -24,29 +24,29 @@ AlphaDesk runs a multi-step data pipeline against the Birdeye API to:
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    React Frontend                        │
-│  ┌──────────┐  ┌──────────┐  ┌───────────┐  ┌────────┐ │
-│  │Leaderboard│  │  Signals │  │   Feed    │  │ Wallet │ │
-│  │  (sort,   │  │  Panel   │  │ (derived) │  │ Drawer │ │
-│  │  search,  │  │  (left)  │  │           │  │(detail)│ │
-│  │  export)  │  │          │  │           │  │        │ │
-│  └─────┬─────┘  └────┬─────┘  └─────┬─────┘  └───┬────┘ │
-│        └──────────────┴──────────────┴────────────┘      │
-│                         │                                │
-│              ┌──────────┴──────────┐                     │
-│              │   Data Pipeline     │                     │
-│              │  (8-step orchestr.) │                     │
-│              └──────────┬──────────┘                     │
-│                         │                                │
-│         ┌───────────────┼───────────────┐                │
-│         │               │               │                │
-│    ┌────┴────┐   ┌──────┴──────┐  ┌─────┴─────┐         │
-│    │ Scoring │   │ Normalizers │  │  Signals  │         │
-│    │(5-factor│   │ (defensive  │  │(conviction│         │
-│    │  alpha) │   │  parsing)   │  │  + feed)  │         │
-│    └─────────┘   └─────────────┘  └───────────┘         │
-└────────────────────────┬────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                       React Frontend                             │
+│  ┌──────────┐ ┌──────────┐ ┌────────┐ ┌────────┐ ┌───────────┐ │
+│  │Leaderboard│ │  Signals │ │  Feed  │ │Overlap │ │ Watchlist │ │
+│  │  (sort,   │ │  Panel   │ │(derived│ │(matrix)│ │(starred,  │ │
+│  │  search,  │ │  (left)  │ │  from  │ │        │ │ persisted)│ │
+│  │  export)  │ │          │ │  API)  │ │        │ │           │ │
+│  └─────┬─────┘ └────┬─────┘ └───┬────┘ └───┬────┘ └─────┬─────┘ │
+│        └─────────────┴──────────┴──────────┴────────────┘       │
+│                         │                                        │
+│              ┌──────────┴──────────┐                             │
+│              │   Data Pipeline     │                             │
+│              │  (8-step orchestr.) │                             │
+│              └──────────┬──────────┘                             │
+│                         │                                        │
+│         ┌───────────────┼───────────────┐                        │
+│         │               │               │                        │
+│    ┌────┴────┐   ┌──────┴──────┐  ┌─────┴─────┐                 │
+│    │ Scoring │   │ Normalizers │  │  Signals  │                 │
+│    │(5-factor│   │ (defensive  │  │(conviction│                 │
+│    │  alpha) │   │  parsing)   │  │  + feed)  │                 │
+│    └─────────┘   └─────────────┘  └───────────┘                 │
+└────────────────────────┬─────────────────────────────────────────┘
                          │
               ┌──────────┴──────────┐
               │  Vercel Serverless  │
@@ -96,13 +96,16 @@ A heuristic intelligence metric (0–100) composed of:
 
 - **Smart Money Leaderboard** — Sortable by any column, searchable, exportable as CSV
 - **Conviction Signals** — Auto-detects tokens held by 3+ smart wallets with conviction levels (MODERATE → HIGH → EXTREME)
+- **Token Overlap Matrix** — Visual heatmap showing which wallets share positions across tokens
+- **Wallet Watchlist** — Star wallets to track them across sessions (persisted via localStorage)
 - **Activity Feed** — Derived from Birdeye top trader data, not fabricated
 - **Wallet Detail Drawer** — Per-factor score breakdown, position list with sparklines, security flags
 - **Three Data Modes** — Demo (instant, no key needed), Live via Proxy (server-side key), Live via User Key
 - **Auto-Refresh** — Configurable 30s / 1m / 5m intervals in live mode
-- **Keyboard Shortcuts** — R (refresh), D (demo), L (live), 1/2/3 (tabs), ? (help)
+- **Keyboard Shortcuts** — R (refresh), D (demo), L (live), 1–5 (tabs), W (toggle watchlist), ? (help)
 - **Solscan Integration** — Deep links to verify wallets on-chain
 - **Pipeline Stats** — Shows API calls made, tokens scanned, wallets enriched, and timing
+- **Cache Validation** — Cached payloads are structurally validated before use; malformed data is treated as a cache miss
 
 ## Proxy Security
 
@@ -118,7 +121,7 @@ The Vercel serverless proxy (`api/birdeye.js`) implements:
 ## Quick Start
 
 ```bash
-git clone https://github.com/stevve-stack3/AlphaDesk.git
+git clone https://github.com/savage-debug3/AlphaDesk.git
 cd AlphaDesk
 npm install
 npm run dev
@@ -145,10 +148,12 @@ AlphaDesk/
 │   ├── components/
 │   │   ├── Header.jsx          # Mode toggle, API key, refresh, auto-refresh
 │   │   ├── ModeBanner.jsx      # Data source status banner
-│   │   ├── LeaderboardTab.jsx  # Sortable, searchable wallet ranking
+│   │   ├── LeaderboardTab.jsx  # Sortable, searchable wallet ranking + star
 │   │   ├── FeedTab.jsx         # Activity feed (derived from API)
 │   │   ├── SignalsPanel.jsx    # Left sidebar conviction signals
 │   │   ├── SignalsDetailTab.jsx# Expanded signal view with holders
+│   │   ├── OverlapTab.jsx      # Token overlap matrix across wallets
+│   │   ├── WatchlistTab.jsx    # Starred wallets persistent view
 │   │   ├── WalletDrawer.jsx    # Wallet detail + score breakdown
 │   │   ├── AlphaScoreExplainer.jsx # Methodology modal
 │   │   ├── Sparkline.jsx       # SVG sparkline charts
