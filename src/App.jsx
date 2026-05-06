@@ -25,7 +25,7 @@ function loadCachedData() {
       localStorage.removeItem(STORAGE_KEY);
       return null;
     }
-    return parsed;
+    return Array.isArray(parsed.wallets) && Array.isArray(parsed.signals) && Array.isArray(parsed.feed) ? parsed : null;
   } catch {
     return null;
   }
